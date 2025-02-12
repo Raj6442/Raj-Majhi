@@ -4,11 +4,11 @@ import json
 import os
 
 AWS_REGION = "ap-southeast-2"
-S3_BUCKET = "your-s3-bucket-name"
-RDS_HOST = "your-rds-endpoint"
+S3_BUCKET = "raj-s3-to-rds-bucket"
+RDS_HOST = "my-rds-cluster.cluster-cd0246wo8ikw.ap-southeast-2.rds.amazonaws.com"
 RDS_PORT = "5432"
-RDS_USER = "admin"
-RDS_PASSWORD = "Admin1234!"
+RDS_USER = "raj_rds_user"
+RDS_PASSWORD = "MySecurePass123!"
 RDS_DATABASE = "s3rdsdb"
 
 def read_from_s3():
