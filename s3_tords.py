@@ -1,64 +1,43 @@
 import boto3
-import pandas as pd
 import psycopg2
-import os
 import json
+import os
 
-# Initialize clients
-s3_client = boto3.client('s3')
-rds_client = boto3.client('rds-data')
-glue_client = boto3.client('glue')
+AWS_REGION = "ap-southeast-2"
+S3_BUCKET = "your-s3-bucket-name"
+RDS_HOST = "your-rds-endpoint"
+RDS_PORT = "5432"
+RDS_USER = "admin"
+RDS_PASSWORD = "Admin1234!"
+RDS_DATABASE = "s3rdsdb"
 
-# Constants
-S3_BUCKET = 'my-s3-bucket'
-S3_KEY = 'data/file.csv'
-RDS_DB_NAME = 'my-rds-db'
-RDS_CLUSTER_ARN = 'arn:aws:rds:us-west-2:123456789012:cluster:my-rds-cluster'
-RDS_SECRET_ARN = 'arn:aws:secretsmanager:us-west-2:123456789012:secret:my-rds-secret'
-GLUE_DATABASE_NAME = 'my-glue-database'
+def read_from_s3():
+    s3 = boto3.client('s3', region_name=AWS_REGION)
+    response = s3.list_objects_v2(Bucket=S3_BUCKET)
 
-def read_s3_data():
-    obj = s3_client.get_object(Bucket=S3_BUCKET, Key=S3_KEY)
-    df = pd.read_csv(obj['Body'])
-    return df
+    for obj in response.get('Contents', []):
+        file_data = s3.get_object(Bucket=S3_BUCKET, Key=obj['Key'])
+        content = file_data['Body'].read().decode('utf-8')
+        store_to_rds(content)
 
-def push_to_rds(df):
+def store_to_rds(data):
     try:
         conn = psycopg2.connect(
-            dbname=RDS_DB_NAME,
-            host=os.environ.get('RDS_HOST'),
-            user=os.environ.get('RDS_USER'),
-            password=os.environ.get('RDS_PASSWORD'),
-            port='5432'
+            dbname=RDS_DATABASE,
+            user=RDS_USER,
+            password=RDS_PASSWORD,
+            host=RDS_HOST,
+            port=RDS_PORT
         )
         cursor = conn.cursor()
-        for index, row in df.iterrows():
-            cursor.execute(f"INSERT INTO my_table (col1, col2) VALUES (%s, %s)", (row['col1'], row['col2']))
+        cursor.execute("INSERT INTO records (data) VALUES (%s)", (data,))
         conn.commit()
         cursor.close()
         conn.close()
-        print("Data pushed to RDS successfully.")
+        print("Data inserted into RDS successfully.")
     except Exception as e:
-        print(f"Error pushing to RDS: {str(e)}")
-        push_to_glue(df)
-
-def push_to_glue(df):
-    try:
-        glue_client.batch_create_partition(
-            DatabaseName=GLUE_DATABASE_NAME,
-            TableName='my_table',
-            PartitionInputList=[{
-                'Values': ['partition_value'],
-                'StorageDescriptor': {
-                    'Columns': [{'Name': 'col1', 'Type': 'string'}, {'Name': 'col2', 'Type': 'string'}],
-                    'Location': 's3://my-glue-bucket/'
-                }
-            }]
-        )
-        print("Data pushed to Glue successfully.")
-    except Exception as e:
-        print(f"Error pushing to Glue: {str(e)}")
+        print(f"Failed to insert data into RDS: {e}")
 
 def lambda_handler(event, context):
-    df = read_s3_data()
-    push_to_rds(df)
+    read_from_s3()
+    return {"statusCode": 200, "body": json.dumps("Lambda executed successfully")}

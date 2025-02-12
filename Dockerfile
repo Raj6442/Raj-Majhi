@@ -1,17 +1,10 @@
-FROM python:3.8-slim
+FROM public.ecr.aws/lambda/python:3.9
 
-WORKDIR /app
+COPY s3_to_rds.py /var/task/
+COPY requirements.txt /var/task/
 
-# Install dependencies
-COPY requirements.txt .
+WORKDIR /var/task
+
 RUN pip install -r requirements.txt
 
-# Copy Python script
-COPY s3_to_rds.py .
-
-# Environment variables
-ENV RDS_HOST=my-rds-hostname
-ENV RDS_USER=my-rds-username
-ENV RDS_PASSWORD=my-rds-password
-
-CMD ["python", "s3_to_rds.py"]
+CMD ["s3_to_rds.lambda_handler"]
