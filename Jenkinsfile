@@ -6,6 +6,11 @@ pipeline {
         AWS_ACCOUNT_ID = "084375557233"
         ECR_REPOSITORY = "s3-to-rds-repo"
         ECR_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}"
+        S3_BUCKET = "raj-s3-to-rds-bucket"
+        RDS_HOST = "my-rds-cluster.cluster-cd0246wo8ikw.ap-southeast-2.rds.amazonaws.com"
+        RDS_USER = "raj_rds_user"
+        RDS_PASSWORD = "MySecurePass123!"
+        RDS_DATABASE = "s3rdsdb"
     }
 
     stages {
