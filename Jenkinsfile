@@ -21,14 +21,15 @@ pipeline {
         }
 
         stage('Build Docker Image') {
-            steps {
-                script {
-                    sh 'ls -l'  // Debug: Check files
-                    sh 'docker build -t s3-to-rds .'
-                    sh 'docker tag s3-to-rds:latest ${ECR_URI}:latest'
-                }
-            }
+    steps {
+        script {
+            sh 'ls -l'  // Debugging: Check workspace files
+            sh 'docker build -t s3-to-rds .'  // Remove `cd myapp`
+            sh 'docker tag s3-to-rds:latest ${ECR_URI}:latest'
         }
+    }
+}
+
 
         stage('Push Image to ECR') {
             steps {
