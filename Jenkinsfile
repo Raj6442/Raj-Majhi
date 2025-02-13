@@ -1,5 +1,5 @@
 pipeline {
-    agent { docker { image 'docker:latest' } }  // Ensure Docker is available
+    agent any
 
     environment {
         AWS_REGION = "ap-southeast-2"
@@ -21,30 +21,25 @@ pipeline {
         }
 
         stage('Build Docker Image') {
-    steps {
-        script {
-            sh 'ls -l'  // Debugging: Check workspace files
-            sh 'docker build -t s3-to-rds .'  // Remove `cd myapp`
-            sh 'docker tag s3-to-rds:latest ${ECR_URI}:latest'
+            steps {
+                script {
+                    sh 'ls -l'  // Debugging: List files in workspace
+                    sh 'docker build -t s3-to-rds .'  // Removed `cd myapp`
+                    sh 'docker tag s3-to-rds:latest ${ECR_URI}:latest'
+                }
+            }
         }
-    }
-}
-
 
         stage('Push Image to ECR') {
             steps {
-                script {
-                    sh 'aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URI}'
-                    sh 'docker push ${ECR_URI}:latest'
-                }
+                sh 'aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URI}'
+                sh 'docker push ${ECR_URI}:latest'
             }
         }
 
         stage('Deploy Lambda via Terraform') {
             steps {
-                script {
-                    sh 'cd terraform && ls -l && terraform init && terraform apply -auto-approve'
-                }
+                sh 'cd terraform && terraform init && terraform apply -auto-approve'
             }
         }
     }
