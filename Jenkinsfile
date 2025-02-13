@@ -30,12 +30,16 @@ pipeline {
             }
         }
 
-        stage('Push Image to ECR') {
-            steps {
-                bat 'aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URI}'
-                bat 'docker push ${ECR_URI}:latest'
-            }
+        stage('Build Docker Image') {
+    steps {
+        script {
+            powershell 'docker --version'  // Check Docker version
+            powershell 'docker build -t s3-to-rds .'  // Build Docker image
+            powershell 'docker tag s3-to-rds:latest ${ECR_URI}:latest'
         }
+    }
+}
+
 
         stage('Deploy Lambda via Terraform') {
             steps {
