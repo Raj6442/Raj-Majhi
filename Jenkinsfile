@@ -23,23 +23,23 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'ls -l'  // Debugging: List files in workspace
-                    sh 'docker build -t s3-to-rds .'  // Removed `cd myapp`
-                    sh 'docker tag s3-to-rds:latest ${ECR_URI}:latest'
+                    bat 'dir'  // Debugging: List files in workspace (Windows)
+                    bat 'docker build -t s3-to-rds .'  // Use 'bat' on Windows for Docker
+                    bat 'docker tag s3-to-rds:latest ${ECR_URI}:latest'
                 }
             }
         }
 
         stage('Push Image to ECR') {
             steps {
-                sh 'aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URI}'
-                sh 'docker push ${ECR_URI}:latest'
+                bat 'aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URI}'
+                bat 'docker push ${ECR_URI}:latest'
             }
         }
 
         stage('Deploy Lambda via Terraform') {
             steps {
-                sh 'cd terraform && terraform init && terraform apply -auto-approve'
+                bat 'cd terraform && terraform init && terraform apply -auto-approve'
             }
         }
     }
