@@ -23,27 +23,25 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    bat 'dir'  // Debugging: List files in workspace (Windows)
-                    bat 'docker build -t s3-to-rds .'  // Use 'bat' on Windows for Docker
-                    bat 'docker tag s3-to-rds:latest ${ECR_URI}:latest'
+                    // Use PowerShell to check Docker version and build the image
+                    powershell 'docker --version'  // Check Docker version
+                    powershell 'docker build -t s3-to-rds .'  // Build Docker image
+                    powershell 'docker tag s3-to-rds:latest ${ECR_URI}:latest'  // Tag the image
                 }
             }
         }
 
-        stage('Build Docker Image') {
-    steps {
-        script {
-            powershell 'docker --version'  // Check Docker version
-            powershell 'docker build -t s3-to-rds .'  // Build Docker image
-            powershell 'docker tag s3-to-rds:latest ${ECR_URI}:latest'
+        stage('Push Image to ECR') {
+            steps {
+                // Login to ECR and push the Docker image
+                powershell 'aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URI}'
+                powershell 'docker push ${ECR_URI}:latest'
+            }
         }
-    }
-}
-
 
         stage('Deploy Lambda via Terraform') {
             steps {
-                bat 'cd terraform && terraform init && terraform apply -auto-approve'
+                powershell 'cd terraform && terraform init && terraform apply -auto-approve'  // Run Terraform
             }
         }
     }
