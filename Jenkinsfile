@@ -19,7 +19,7 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/Raj6442/Raj-Majhi.git'
             }
         }
-
+        
         stage('Build Docker Image') {
             steps {
                 script {
@@ -32,12 +32,14 @@ pipeline {
         }
 
         stage('Push Image to ECR') {
-            steps {
-                // Login to ECR and push the Docker image
-                sh 'aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin 084375557233.dkr.ecr.ap-southeast-2.amazonaws.com'
-                sh 'docker push ${ECR_URI}:latest'
-            }
+    steps {
+        withAWS(credentials: 'AKIARHJJM2RY744USUZ6', region: 'ap-southeast-2') {
+            sh 'aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin 084375557233.dkr.ecr.ap-southeast-2.amazonaws.com'
+            sh 'docker push ${ECR_URI}:latest'
         }
+    }
+}
+
 
         stage('Deploy Lambda via Terraform') {
             steps {
