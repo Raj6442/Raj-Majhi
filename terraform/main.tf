@@ -12,13 +12,10 @@ resource "aws_rds_cluster" "rds" {
   engine_version          = "13.9"
   database_name           = "mydatabase"
   
-
   skip_final_snapshot = true
-
-  storage_encrypted = true
-  apply_immediately = true
+  storage_encrypted    = true
+  apply_immediately    = true
 }
-
 
 # Create a Lambda Function for S3 to RDS
 resource "aws_lambda_function" "s3_to_rds_lambda" {
@@ -67,10 +64,9 @@ resource "aws_iam_policy_attachment" "lambda_rds_policy" {
 }
 
 # Output RDS Endpoint
-output "lambda_function_name" {
-  value = aws_lambda_function.s3_to_rds_lambda.function_name
+output "rds_endpoint" {
+  value = aws_rds_cluster.rds.endpoint
 }
-
 
 # Output Lambda Function Name
 output "lambda_function_name" {
