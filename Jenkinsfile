@@ -33,12 +33,21 @@ pipeline {
 
         stage('Push Image to ECR') {
     steps {
-        withAWS(credentials: 'AKIARHJJM2RY744USUZ6', region: 'ap-southeast-2') {
-            sh 'aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin 084375557233.dkr.ecr.ap-southeast-2.amazonaws.com'
-            sh 'docker push ${ECR_URI}:latest'
+        script {
+            // Set AWS credentials as environment variables
+            withEnv([
+                'AWS_ACCESS_KEY_ID=AKIARHJJM2RY744USUZ6',
+                'AWS_SECRET_ACCESS_KEY=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'
+            ]) {
+                // Authenticate Docker to ECR
+                sh 'aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin 084375557233.dkr.ecr.ap-southeast-2.amazonaws.com'
+                // Push Docker image to ECR
+                sh 'docker push 084375557233.dkr.ecr.ap-southeast-2.amazonaws.com/s3-to-rds-repo:latest'
+            }
         }
     }
 }
+
 
 
         stage('Deploy Lambda via Terraform') {
