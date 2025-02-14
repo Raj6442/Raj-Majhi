@@ -67,9 +67,10 @@ resource "aws_iam_policy_attachment" "lambda_rds_policy" {
 }
 
 # Output RDS Endpoint
-output "rds_endpoint" {
-  value = aws_rds_cluster.rds.endpoint
+output "lambda_function_name" {
+  value = aws_lambda_function.s3_to_rds_lambda.function_name
 }
+
 
 # Output Lambda Function Name
 output "lambda_function_name" {
